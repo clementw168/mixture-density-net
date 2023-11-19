@@ -1,0 +1,47 @@
+{
+    "git.autofetch": true,
+    "files.insertFinalNewline": true,
+    "files.trimTrailingWhitespace": true,
+    "explorer.confirmDragAndDrop": false,
+    "explorer.confirmDelete": false,
+    "terminal.integrated.tabs.enabled": true,
+    "workbench.startupEditor": "none",
+    "editor.formatOnSave": true,
+    "editor.inlineSuggest.enabled": true,
+    "extensions.ignoreRecommendations": true,
+    "python.formatting.provider": "none",
+    "python.languageServer": "Pylance",
+    "python.analysis.typeCheckingMode": "basic",
+    "python.terminal.activateEnvironment": false,
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.black-formatter",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": true
+        }
+    },
+    "workbench.editorAssociations": {
+        "*.ipynb": "jupyter-notebook"
+    },
+    "notebook.formatOnSave.enabled": true,
+    "notebook.output.scrolling": true,
+    "notebook.cellToolbarLocation": {
+        "default": "right",
+        "jupyter-notebook": "left"
+    },
+    "[markdown]": {
+        "editor.defaultFormatter": null
+    },
+    "vetur.completion.tagCasing": "initial",
+    "javascript.updateImportsOnFileMove.enabled": "always",
+    "typescript.updateImportsOnFileMove.enabled": "always",
+    "github.copilot.enable": {
+        "*": true,
+        "yaml": true,
+        "plaintext": true,
+        "markdown": true,
+        "python": true,
+        "json": true,
+        "typescript": true
+    }
+}
