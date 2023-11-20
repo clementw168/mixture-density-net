@@ -125,7 +125,7 @@ def mdn_loss(
         )
     )
 
-    normalizer = torch.sqrt((2 * torch.pi * sigma) ** output_dimension) + 1e-10
+    normalizer = torch.sqrt((2 * torch.pi * sigma ** 2) ** output_dimension) + 1e-10
     loss = -torch.log((exponent * pi / normalizer + 1e-10).sum(dim=1))
     loss = torch.mean(loss)
 
