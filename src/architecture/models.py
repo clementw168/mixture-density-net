@@ -57,6 +57,54 @@ class LinearMDN(torch.nn.Module):
         return self.mdn_head(x)
 
 
+class LinearNet(torch.nn.Module):
+    """Fully connected network."""
+
+    def __init__(
+        self,
+        input_dimension: int,
+        hidden_dims: list[int],
+        output_dimension: int,
+    ):
+        """Initialize the network.
+
+        Args:
+            input_dimension (int): Dimension of the input.
+            output_dimension (int): Dimension of the output.
+            n_mixtures (int): Number of mixtures to use in the mixture density head.
+        """
+        super().__init__()
+        self.input_dimension = input_dimension
+        self.output_dimension = output_dimension
+
+        hidden_dims = [input_dimension] + hidden_dims
+        self.hidden_layers = torch.nn.ModuleList()
+        for i in range(len(hidden_dims) - 1):
+            self.hidden_layers.append(
+                torch.nn.Linear(hidden_dims[i], hidden_dims[i + 1])
+            )
+
+        self.hidden_layers.append(torch.nn.Linear(hidden_dims[-1], output_dimension))
+
+    def forward(self, x):
+        """Forward pass of the fully connected network.
+
+        Args:
+            x (torch.Tensor): Input tensor of shape (batch_size, input_dimension).
+
+        Returns:
+            output (torch.Tensor): Output of the network. Shape (batch_size, output_dimension).
+
+        """
+        output = x
+        for layer_index in range(len(self.hidden_layers)):
+            output = self.hidden_layers[layer_index](output)
+            if layer_index != len(self.hidden_layers) - 1:
+                output = torch.nn.functional.relu(output)
+
+        return output
+
+
 if __name__ == "__main__":
     input_tensor = torch.randn(32, 3)
     model = LinearMDN(

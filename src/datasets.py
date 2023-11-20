@@ -12,6 +12,7 @@ class FunctionDataset(Dataset):
         range: tuple[float, float] = (-0.1, 0.1),
         noise_std: float = 0.1,
         inverse_function: bool = False,
+        sort: bool = False,
     ):
         """Initialize the dataset.
 
@@ -21,6 +22,7 @@ class FunctionDataset(Dataset):
             range (tuple[float, float], optional): Range to sample the points from. Defaults to (-0.1, 0.1).
             noise_std (float, optional): Standard deviation of the noise to add to the function. Defaults to 0.1.
             inverse_function (bool, optional): If True, uses the argument of the function as the label. Defaults to False.
+            sort (bool, optional): If True, sorts the dataset by the x values. Defaults to False.
         """
         super().__init__()
         self.function = function
@@ -36,6 +38,10 @@ class FunctionDataset(Dataset):
         if inverse_function:
             self.y, self.x = self.x, self.y
 
+        if sort:
+            self.x, indices = torch.sort(self.x)
+            self.y = self.y[indices]
+
         self.y += torch.randn_like(self.y) * noise_std
 
     def __len__(self):
@@ -45,5 +51,5 @@ class FunctionDataset(Dataset):
         return self.x[index].reshape((1,)), self.y[index].reshape((1,))
 
 
-def sinusoide(x: torch.Tensor) -> torch.Tensor:
+def sinusoid(x: torch.Tensor) -> torch.Tensor:
     return x + 0.3 * torch.sin(2 * torch.pi * x)
