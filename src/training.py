@@ -11,7 +11,7 @@ def train_loop(
     loss_function: Callable[
         [torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor], torch.Tensor
     ],
-    device: str,
+    device: str = "cpu",
 ) -> float:
     model.train()
 

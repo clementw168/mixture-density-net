@@ -43,6 +43,7 @@ class FunctionDataset(Dataset):
             self.y = self.y[indices]
 
         self.y += torch.randn_like(self.y) * noise_std
+        self.x += torch.randn_like(self.x) * noise_std
 
     def __len__(self):
         return self.n_samples
