@@ -9,7 +9,7 @@ def plot_mdn_prediction_1d(
     label: torch.Tensor,
     device: str,
     n_samples: int = 1000,
-):
+) -> None:
     model.eval()
     inference_sample = inference_sample.unsqueeze(0).to(device)
     with torch.no_grad():

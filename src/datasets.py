@@ -68,7 +68,7 @@ class MNISTDataset(Dataset):
     def __len__(self):
         return len(self.mnist)
 
-    def __getitem__(self, index):
+    def __getitem__(self, index) -> tuple[torch.Tensor, torch.Tensor]:
         image, label = self.mnist[index]
 
         image = self.transform(image)
