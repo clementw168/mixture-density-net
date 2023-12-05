@@ -59,9 +59,10 @@ def sinusoid(x: torch.Tensor) -> torch.Tensor:
 
 
 class MNISTDataset(Dataset):
-    def __init__(self, train: bool = True):
+    def __init__(self, train: bool = True, classification: bool = False):
         super().__init__()
         self.mnist = MNIST(root="data", download=True, train=train)
+        self.classification = classification
         self.transform = ToTensor()
 
     def __len__(self):
@@ -71,6 +72,9 @@ class MNISTDataset(Dataset):
         image, label = self.mnist[index]
 
         image = self.transform(image)
-        label = torch.tensor(label)
+        label = torch.tensor(label if self.classification else label / 10)
+        label = label.reshape(
+            1,
+        )
 
         return image, label
