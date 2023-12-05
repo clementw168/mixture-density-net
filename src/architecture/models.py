@@ -105,6 +105,78 @@ class LinearNet(torch.nn.Module):
         return output
 
 
+class FlattenLinear(LinearNet):
+    def __init__(
+        self, input_dimension: tuple[int], hidden_dims: list[int], output_dimension: int
+    ):
+        self.input_dimension = input_dimension
+        flattened_dimension = 1
+        for dim in input_dimension:
+            flattened_dimension *= dim
+
+        super().__init__(flattened_dimension, hidden_dims, output_dimension)
+
+    def forward(self, x):
+        return super().forward(x.flatten(start_dim=1))
+
+
+class FlattenLinearMDN(LinearMDN):
+    def __init__(
+        self,
+        input_dimension: tuple[int],
+        hidden_dims: list[int],
+        output_dimension: int,
+        n_mixtures: int,
+    ):
+        self.input_dimension = input_dimension
+        flattened_dimension = 1
+        for dim in input_dimension:
+            flattened_dimension *= dim
+
+        super().__init__(flattened_dimension, hidden_dims, output_dimension, n_mixtures)
+
+    def forward(self, x):
+        return super().forward(x.flatten(start_dim=1))
+
+
+class BasicCNN(torch.nn.Module):
+    def __init__(self, input_dimension: tuple[int], output_dimension: int):
+        self.sequential = torch.nn.Sequential(
+            torch.nn.Conv2d(input_dimension[0], 16, 3),
+            torch.nn.ReLU(),
+            torch.nn.MaxPool2d(2),
+            torch.nn.Conv2d(16, 32, 3),
+            torch.nn.ReLU(),
+            torch.nn.MaxPool2d(2),
+            torch.nn.Conv2d(32, 64, 3),
+            torch.nn.AdaptiveAvgPool2d((1, 1)),
+            torch.nn.Linear(64, 32),
+            torch.nn.ReLU(),
+            torch.nn.Linear(32, output_dimension),
+        )
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.sequential(x)
+
+
+class ConvolutionalMDN(BasicCNN):
+    def __init__(
+        self,
+        input_dimension: tuple[int],
+        output_dimension: int,
+        n_mixtures: int,
+    ):
+        super().__init__(input_dimension, output_dimension)
+        self.mdn_head = MixtureDensityHead(output_dimension, n_mixtures)
+
+    def forward(
+        self, x: torch.Tensor
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        x = super().forward(x)
+
+        return self.mdn_head(x)
+
+
 if __name__ == "__main__":
     input_tensor = torch.randn(32, 3)
     model = LinearMDN(

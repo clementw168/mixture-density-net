@@ -2,6 +2,8 @@ from typing import Callable
 
 import torch
 from torch.utils.data import Dataset
+from torchvision.datasets import MNIST
+from torchvision.transforms import ToTensor
 
 
 class FunctionDataset(Dataset):
@@ -54,3 +56,21 @@ class FunctionDataset(Dataset):
 
 def sinusoid(x: torch.Tensor) -> torch.Tensor:
     return x + 0.3 * torch.sin(2 * torch.pi * x)
+
+
+class MNISTDataset(Dataset):
+    def __init__(self, train: bool = True):
+        super().__init__()
+        self.mnist = MNIST(root="data", download=True, train=train)
+        self.transform = ToTensor()
+
+    def __len__(self):
+        return len(self.mnist)
+
+    def __getitem__(self, index):
+        image, label = self.mnist[index]
+
+        image = self.transform(image)
+        label = torch.tensor(label)
+
+        return image, label
