@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import Any, Callable
 
 import torch
 from torch.utils.data import DataLoader
@@ -8,9 +8,7 @@ def train_loop(
     model: torch.nn.Module,
     train_loader: DataLoader,
     optimizer: torch.optim.Optimizer,
-    loss_function: Callable[
-        [torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor], torch.Tensor
-    ],
+    loss_function: Callable[[Any, torch.Tensor], torch.Tensor],
     device: str,
 ) -> float:
     model.train()
@@ -21,8 +19,8 @@ def train_loop(
         x, y = x.to(device), y.to(device)
 
         optimizer.zero_grad()
-        mu, sigma, pi = model(x)
-        loss = loss_function(mu, sigma, pi, y)
+        output = model(x)
+        loss = loss_function(output, y)
         loss_mean.append(loss.item())
         loss.backward()
         optimizer.step()
@@ -33,9 +31,7 @@ def train_loop(
 def test_loop(
     model: torch.nn.Module,
     test_loader: DataLoader,
-    loss_function: Callable[
-        [torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor], torch.Tensor
-    ],
+    loss_function: Callable[[Any, torch.Tensor], torch.Tensor],
     device: str,
 ) -> float:
     model.eval()
@@ -46,72 +42,29 @@ def test_loop(
         for x, y in test_loader:
             x, y = x.to(device), y.to(device)
 
-            mu, sigma, pi = model(x)
-            loss = loss_function(mu, sigma, pi, y)
-            loss_mean.append(loss.item())
-
-    return sum(loss_mean) / len(loss_mean)
-
-
-def train_loop_mse(
-    model: torch.nn.Module,
-    train_loader: DataLoader,
-    optimizer: torch.optim.Optimizer,
-    loss_function: Callable[[torch.Tensor, torch.Tensor], torch.Tensor],
-    device: str,
-) -> float:
-    model.train()
-
-    loss_mean = []
-
-    for x, y in train_loader:
-        x, y = x.to(device), y.to(device)
-
-        optimizer.zero_grad()
-        y_pred = model(x)
-        loss = loss_function(y_pred, y)
-        loss.backward()
-        optimizer.step()
-        loss_mean.append(loss.item())
-
-    return sum(loss_mean) / len(loss_mean)
-
-
-def test_loop_mse(
-    model: torch.nn.Module,
-    test_loader: DataLoader,
-    loss_function: Callable[[torch.Tensor, torch.Tensor], torch.Tensor],
-    device: str,
-) -> float:
-    model.eval()
-
-    loss_mean = []
-
-    with torch.no_grad():
-        for x, y in test_loader:
-            x, y = x.to(device), y.to(device)
-
-            y_pred = model(x)
-            loss = loss_function(y_pred, y)
+            output = model(x)
+            loss = loss_function(output, y)
             loss_mean.append(loss.item())
 
     return sum(loss_mean) / len(loss_mean)
 
 
 def mdn_loss(
-    mu: torch.Tensor, sigma: torch.Tensor, pi: torch.Tensor, y_true: torch.Tensor
+    output: tuple[torch.Tensor, torch.Tensor, torch.Tensor], y_true: torch.Tensor
 ) -> torch.Tensor:
     """Compute the loss of the mixture density network.
 
     Args:
-        mu (torch.Tensor): Mean of the Gaussian mixture model. Shape (batch_size, n_mixtures, output_dimension).
-        sigma (torch.Tensor): Standard deviation of the Gaussian mixture model. Shape (batch_size, n_mixtures).
-        pi (torch.Tensor): Mixing coefficients of the Gaussian mixture model. Shape (batch_size, n_mixtures).
+        output (tuple[torch.Tensor, torch.Tensor, torch.Tensor]): Output of the mixture density network.
+            mu (torch.Tensor): Mean of the Gaussian mixture model. Shape (batch_size, n_mixtures, output_dimension).
+            sigma (torch.Tensor): Standard deviation of the Gaussian mixture model. Shape (batch_size, n_mixtures).
+            pi (torch.Tensor): Mixing coefficients of the Gaussian mixture model. Shape (batch_size, n_mixtures).
         y (torch.Tensor): Target tensor. Shape (batch_size, output_dimension).
 
     Returns:
         torch.Tensor: Loss of the mixture density network.
     """
+    mu, sigma, pi = output
 
     output_dimension = y_true.shape[1]
 
@@ -125,14 +78,14 @@ def mdn_loss(
         )
     )
 
-    normalizer = torch.sqrt((2 * torch.pi * sigma ** 2) ** output_dimension) + 1e-10
+    normalizer = torch.sqrt((2 * torch.pi * sigma**2) ** output_dimension) + 1e-10
     loss = -torch.log((exponent * pi / normalizer + 1e-10).sum(dim=1))
     loss = torch.mean(loss)
 
     return loss
 
 
-def mse_loss(y_pred, y_true: torch.Tensor) -> torch.Tensor:
+def mse_loss(y_pred: torch.Tensor, y_true: torch.Tensor) -> torch.Tensor:
     """Compute the MSE loss.
 
     Args:
