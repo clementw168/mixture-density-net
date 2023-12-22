@@ -8,8 +8,10 @@ def train_loop(
     model: torch.nn.Module,
     train_loader: DataLoader,
     optimizer: torch.optim.Optimizer,
-    loss_function: Callable[[Any, torch.Tensor], torch.Tensor],
-    device: str,
+    loss_function: Callable[
+        [torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor], torch.Tensor
+    ],
+    device: str = "cpu",
 ) -> float:
     model.train()
 
@@ -24,6 +26,8 @@ def train_loop(
         loss_mean.append(loss.item())
         loss.backward()
         optimizer.step()
+
+        # print(f"Loss: {loss.item():.4f}", end="\r")
 
     return sum(loss_mean) / len(loss_mean)
 

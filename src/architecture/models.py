@@ -1,4 +1,5 @@
 import torch
+from torch import nn
 
 from src.architecture.modules import MixtureDensityHead
 
@@ -36,6 +37,10 @@ class LinearMDN(torch.nn.Module):
             torch.nn.Linear(hidden_dims[-1], (output_dimension + 2) * n_mixtures)
         )
 
+        self.batch_norm = nn.BatchNorm1d((output_dimension + 2) * n_mixtures)
+
+        print(self.hidden_layers)
+
         self.mdn_head = MixtureDensityHead(output_dimension, n_mixtures)
 
     def forward(self, x):
@@ -53,6 +58,8 @@ class LinearMDN(torch.nn.Module):
             x = self.hidden_layers[layer_index](x)
             if layer_index != len(self.hidden_layers) - 1:
                 x = torch.nn.functional.relu(x)
+
+        # x = self.batch_norm(x)
 
         return self.mdn_head(x)
 
@@ -185,6 +192,113 @@ class ConvolutionalMDN(BasicCNN):
 
         return self.mdn_head(x)
 
+
+class CoughMDN(nn.Module):
+    def __init__(self, n_mixtures: int):
+        super().__init__()
+        self.conv1 = nn.Sequential(
+            nn.Conv2d(
+                in_channels=1, out_channels=16, kernel_size=3, stride=1, padding=2
+            ),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2),
+        )
+        self.conv2 = nn.Sequential(
+            nn.Conv2d(
+                in_channels=16, out_channels=32, kernel_size=3, stride=1, padding=2
+            ),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2),
+        )
+        self.conv3 = nn.Sequential(
+            nn.Conv2d(
+                in_channels=32, out_channels=64, kernel_size=3, stride=1, padding=2
+            ),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2),
+        )
+        self.conv4 = nn.Sequential(
+            nn.Conv2d(
+                in_channels=64, out_channels=128, kernel_size=3, stride=1, padding=2
+            ),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2),
+        )
+        self.flatten = nn.Flatten()
+        self.linear1 = nn.Linear(in_features=128 * 5 * 4, out_features=128)
+        self.linear2 = nn.Linear(in_features=128, out_features=3*n_mixtures)#3 * n_mixtures)
+
+        self.bn = nn.BatchNorm1d(3*n_mixtures)
+        self.mdn_head = MixtureDensityHead(1, n_mixtures)
+
+
+    def forward(self, input_data):
+        x = self.conv1(input_data)
+        x = self.conv2(x)
+        x = self.conv3(x)
+        x = self.conv4(x)
+        x = self.flatten(x)
+        x = self.linear1(x)
+        # x = nn.functional.relu(x)
+        x = self.linear2(x)
+        # Add batch norm
+        x = self.bn(x)
+
+
+        # Return sigmoid
+        # return torch.sigmoid(x)
+        out = self.mdn_head(x)
+
+        return out
+
+class CoughCNN(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.conv1 = nn.Sequential(
+            nn.Conv2d(
+                in_channels=1, out_channels=16, kernel_size=3, stride=1, padding=2
+            ),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2),
+        )
+        self.conv2 = nn.Sequential(
+            nn.Conv2d(
+                in_channels=16, out_channels=32, kernel_size=3, stride=1, padding=2
+            ),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2),
+        )
+        self.conv3 = nn.Sequential(
+            nn.Conv2d(
+                in_channels=32, out_channels=64, kernel_size=3, stride=1, padding=2
+            ),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2),
+        )
+        self.conv4 = nn.Sequential(
+            nn.Conv2d(
+                in_channels=64, out_channels=128, kernel_size=3, stride=1, padding=2
+            ),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2),
+        )
+        self.flatten = nn.Flatten()
+        self.linear1 = nn.Linear(in_features=128 * 5 * 4, out_features=128)
+        self.linear2 = nn.Linear(in_features=128, out_features=1)
+        self.bn = nn.BatchNorm1d(128)
+
+
+    def forward(self, input_data):
+        x = self.conv1(input_data)
+        x = self.conv2(x)
+        x = self.conv3(x)
+        x = self.conv4(x)
+        x = self.flatten(x)
+        x = self.linear1(x)
+        x = self.bn(x)
+        x = self.linear2(x)
+
+        return torch.sigmoid(x)
 
 if __name__ == "__main__":
     input_tensor = torch.randn(32, 3)
