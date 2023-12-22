@@ -114,14 +114,10 @@ class LinearNet(torch.nn.Module):
 
 class FlattenLinear(LinearNet):
     def __init__(
-<<<<<<< HEAD
-        self, input_dimension: tuple[int], hidden_dims: list[int], output_dimension: int
-=======
         self,
         input_dimension: tuple[int, ...],
         hidden_dims: list[int],
         output_dimension: int,
->>>>>>> main
     ):
         self.input_dimension = input_dimension
         flattened_dimension = 1
@@ -137,11 +133,7 @@ class FlattenLinear(LinearNet):
 class FlattenLinearMDN(LinearMDN):
     def __init__(
         self,
-<<<<<<< HEAD
-        input_dimension: tuple[int],
-=======
         input_dimension: tuple[int, ...],
->>>>>>> main
         hidden_dims: list[int],
         output_dimension: int,
         n_mixtures: int,
@@ -158,14 +150,9 @@ class FlattenLinearMDN(LinearMDN):
 
 
 class BasicCNN(torch.nn.Module):
-<<<<<<< HEAD
-    def __init__(self, input_dimension: tuple[int], output_dimension: int):
-        self.sequential = torch.nn.Sequential(
-=======
     def __init__(self, input_dimension: tuple[int, ...], output_dimension: int):
         super().__init__()
         self.conv = torch.nn.Sequential(
->>>>>>> main
             torch.nn.Conv2d(input_dimension[0], 16, 3),
             torch.nn.ReLU(),
             torch.nn.MaxPool2d(2),
@@ -173,45 +160,29 @@ class BasicCNN(torch.nn.Module):
             torch.nn.ReLU(),
             torch.nn.MaxPool2d(2),
             torch.nn.Conv2d(32, 64, 3),
-<<<<<<< HEAD
-            torch.nn.AdaptiveAvgPool2d((1, 1)),
-=======
         )
         self.linear = torch.nn.Sequential(
->>>>>>> main
             torch.nn.Linear(64, 32),
             torch.nn.ReLU(),
             torch.nn.Linear(32, output_dimension),
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-<<<<<<< HEAD
-        return self.sequential(x)
-=======
         x = self.conv(x)
         x = torch.mean(x, dim=(2, 3))
         x = self.linear(x)
 
         return x
->>>>>>> main
 
 
 class ConvolutionalMDN(BasicCNN):
     def __init__(
         self,
-<<<<<<< HEAD
-        input_dimension: tuple[int],
-        output_dimension: int,
-        n_mixtures: int,
-    ):
-        super().__init__(input_dimension, output_dimension)
-=======
         input_dimension: tuple[int, ...],
         output_dimension: int,
         n_mixtures: int,
     ):
         super().__init__(input_dimension, (output_dimension + 2) * n_mixtures)
->>>>>>> main
         self.mdn_head = MixtureDensityHead(output_dimension, n_mixtures)
 
     def forward(
@@ -222,7 +193,6 @@ class ConvolutionalMDN(BasicCNN):
         return self.mdn_head(x)
 
 
-<<<<<<< HEAD
 class CoughMDN(nn.Module):
     def __init__(self, n_mixtures: int):
         super().__init__()
@@ -330,8 +300,6 @@ class CoughCNN(nn.Module):
 
         return torch.sigmoid(x)
 
-=======
->>>>>>> main
 if __name__ == "__main__":
     input_tensor = torch.randn(32, 3)
     model = LinearMDN(
