@@ -61,6 +61,13 @@ class FunctionDataset(Dataset):
 def sinusoid(x: torch.Tensor) -> torch.Tensor:
     return x + 0.3 * torch.sin(2 * torch.pi * x)
 
+def kinematic(theta1: torch.Tensor, theta2: torch.Tensor, L1: float = 0.8, L2: float = 0.2) -> torch.Tensor:
+    x = L1 * torch.cos(theta1) - L2 * torch.cos(theta1 + theta2)
+    y = L1 * torch.sin(theta1) - L2 * torch.sin(theta1 + theta2)
+    return torch.cat([x, y], dim=-1)
+
+
+
 
 class MNISTDataset(Dataset):
     def __init__(self, train: bool = True):
@@ -88,6 +95,7 @@ class CoughDataset(Dataset):
         transformation,
         target_sample_rate,
         num_samples,
+        # scaler,
         device = 'cpu',
     ):
         name_set = list(
@@ -101,6 +109,23 @@ class CoughDataset(Dataset):
         self.transformation = transformation.to(device)
         self.target_sample_rate = target_sample_rate
         self.num_samples = num_samples
+        # self.scaler = scaler
+
+        # self.labels = []
+        # for file in self.datalist:
+        #     label_file_path = os.path.join(
+        #         self.label_path, file[:-4] + ".json"
+        #     )
+        #     with open(label_file_path, "r") as f:
+        #         content = json.loads(f.read())
+        #         f.close()
+
+        #     if "age" not in content:
+        #         self.labels.append(None)
+        #     else:
+        #         self.labels.append(float(content["age"]))
+
+        # self.scaler.fit(self.labels)
 
     def __len__(self):
         return len(self.datalist)
@@ -121,7 +146,14 @@ class CoughDataset(Dataset):
         if "age" not in content:
             return None  # Skip this item
         else:
-            label = float(content["age"])
+            # label = float(content["age"])
+            label = float(content["cough_detected"])
+            # label = self.scaler.transform([[label]])[0][0]
+            # Normalize the label to be between 0 and 1 with max 100 min 0
+            # label = (label - 0) / (100 - 0)
+
+            # Standardize the label to have mean 0 and std 1
+            # label = (label - 50) / 25
 
         waveform, sample_rate = ta.load(
             audio_file_path

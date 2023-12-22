@@ -37,6 +37,10 @@ class LinearMDN(torch.nn.Module):
             torch.nn.Linear(hidden_dims[-1], (output_dimension + 2) * n_mixtures)
         )
 
+        self.batch_norm = nn.BatchNorm1d((output_dimension + 2) * n_mixtures)
+
+        print(self.hidden_layers)
+
         self.mdn_head = MixtureDensityHead(output_dimension, n_mixtures)
 
     def forward(self, x):
@@ -54,6 +58,8 @@ class LinearMDN(torch.nn.Module):
             x = self.hidden_layers[layer_index](x)
             if layer_index != len(self.hidden_layers) - 1:
                 x = torch.nn.functional.relu(x)
+
+        # x = self.batch_norm(x)
 
         return self.mdn_head(x)
 
@@ -270,6 +276,7 @@ class CoughCNN(nn.Module):
         self.flatten = nn.Flatten()
         self.linear1 = nn.Linear(in_features=128 * 5 * 4, out_features=128)
         self.linear2 = nn.Linear(in_features=128, out_features=1)
+        self.bn = nn.BatchNorm1d(128)
 
 
     def forward(self, input_data):
@@ -279,6 +286,7 @@ class CoughCNN(nn.Module):
         x = self.conv4(x)
         x = self.flatten(x)
         x = self.linear1(x)
+        x = self.bn(x)
         x = self.linear2(x)
 
         return torch.sigmoid(x)

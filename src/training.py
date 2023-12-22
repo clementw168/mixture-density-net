@@ -27,7 +27,7 @@ def train_loop(
         loss.backward()
         optimizer.step()
 
-        print(f"Loss: {loss.item():.4f}", end="\r")
+        # print(f"Loss: {loss.item():.4f}", end="\r")
 
     return sum(loss_mean) / len(loss_mean)
 
