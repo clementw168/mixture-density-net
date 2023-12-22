@@ -7,7 +7,10 @@ import torch
 from torch.utils.data import Dataset
 from torchvision.datasets import MNIST
 from torchvision.transforms import ToTensor
+<<<<<<< HEAD
 import torchaudio as ta
+=======
+>>>>>>> main
 
 
 class FunctionDataset(Dataset):
@@ -61,6 +64,7 @@ class FunctionDataset(Dataset):
 def sinusoid(x: torch.Tensor) -> torch.Tensor:
     return x + 0.3 * torch.sin(2 * torch.pi * x)
 
+<<<<<<< HEAD
 def kinematic(theta1: torch.Tensor, theta2: torch.Tensor, L1: float = 0.8, L2: float = 0.2) -> torch.Tensor:
     x = L1 * torch.cos(theta1) - L2 * torch.cos(theta1 + theta2)
     y = L1 * torch.sin(theta1) - L2 * torch.sin(theta1 + theta2)
@@ -73,11 +77,20 @@ class MNISTDataset(Dataset):
     def __init__(self, train: bool = True):
         super().__init__()
         self.mnist = MNIST(root="data", download=True, train=train)
+=======
+
+class MNISTDataset(Dataset):
+    def __init__(self, train: bool = True, classification: bool = False):
+        super().__init__()
+        self.mnist = MNIST(root="data", download=True, train=train)
+        self.classification = classification
+>>>>>>> main
         self.transform = ToTensor()
 
     def __len__(self):
         return len(self.mnist)
 
+<<<<<<< HEAD
     def __getitem__(self, index):
         image, label = self.mnist[index]
 
@@ -189,3 +202,15 @@ class CoughDataset(Dataset):
             last_dim_padding = (0, num_padding,)
             waveform = torch.nn.functional.pad(waveform, last_dim_padding)
         return waveform
+=======
+    def __getitem__(self, index) -> tuple[torch.Tensor, torch.Tensor]:
+        image, label = self.mnist[index]
+
+        image = self.transform(image)
+        label = torch.tensor(label if self.classification else label / 10)
+        label = label.reshape(
+            1,
+        )
+
+        return image, label
+>>>>>>> main

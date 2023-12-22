@@ -8,10 +8,15 @@ def train_loop(
     model: torch.nn.Module,
     train_loader: DataLoader,
     optimizer: torch.optim.Optimizer,
+<<<<<<< HEAD
     loss_function: Callable[
         [torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor], torch.Tensor
     ],
     device: str = "cpu",
+=======
+    loss_function: Callable[[Any, torch.Tensor], torch.Tensor],
+    device: str,
+>>>>>>> main
 ) -> float:
     model.train()
 
@@ -27,8 +32,11 @@ def train_loop(
         loss.backward()
         optimizer.step()
 
+<<<<<<< HEAD
         # print(f"Loss: {loss.item():.4f}", end="\r")
 
+=======
+>>>>>>> main
     return sum(loss_mean) / len(loss_mean)
 
 
@@ -82,9 +90,14 @@ def mdn_loss(
         )
     )
 
+<<<<<<< HEAD
 
     normalizer = torch.sqrt((2 * torch.pi * sigma**2) ** output_dimension) + 1e-10
     loss = -torch.log((exponent * pi / normalizer + 1e-8).sum(dim=1))
+=======
+    normalizer = torch.sqrt((2 * torch.pi * sigma**2) ** output_dimension) + 1e-10
+    loss = -torch.log((exponent * pi / normalizer + 1e-10).sum(dim=1))
+>>>>>>> main
     loss = torch.mean(loss)
 
     return loss
